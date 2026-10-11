@@ -1,20 +1,19 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import os
 from dotenv import load_dotenv
 from tavily import TavilyClient
 
+# Load API key
 load_dotenv()
-
 api_key = os.getenv("TAVILY_API_KEY")
+
+if not api_key:
+    raise ValueError("Please add your Tavily API key to the .env file")
+
+# Create Tavily client
 client = TavilyClient(api_key=api_key)
 
-print("Welcome to Tavily Q&A Chatbot!")
-print("Type 'exit' to stop.\n")
-now = datetime.now(ZoneInfo("Asia/Kolkata"))
-
-print("Current Date:", now.strftime("%d-%m-%Y"))
-print("Current Time:", now.strftime("%I:%M:%S %p"))
+print("🤖 Welcome to the Python Q&A Chatbot!")
+print("Ask anything. Type 'exit' to stop.\n")
 
 while True:
     question = input("You: ").strip()
@@ -23,65 +22,31 @@ while True:
         print("Bot: Goodbye!")
         break
 
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
-
-    if question.lower() in [
-        "what is today's date?",
-        "what is today's date",
-        "what is the date today?",
-        "what date is it today?"
-    ]:
-        print("Bot: Today's date is",
-              now.strftime("%A, %B %d, %Y"))
-        continue
-
     if not question:
-        continue
-    
-    if not question:
-        continue
-
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    q = question.lower().strip().rstrip("?!.")
-
-    if q in [
-        "what is today's date",
-        "what is the date today",
-        "what date is it today",
-        "today's date",
-        "date today"
-    ]:
-        print("Bot: Today's date is",
-              now.strftime("%A, %B %d, %Y"))
-        continue
-
-    if q in [
-        "what time is it",
-        "what is the current time",
-        "what time is it now",
-        "current time"
-    ]:
-        print("Bot: The current time is",
-              now.strftime("%I:%M:%S %p IST"))
+        print("Bot: Please enter a question.")
         continue
 
     try:
+        # Search the web and get an answer
         response = client.search(
             query=question,
             include_answer=True,
             max_results=3
         )
 
-        print("\nBot:", response.get(
-            "answer", "No direct answer found."
-        ))
+        answer = response.get("answer")
 
-        print("\nSources:")
+        if answer:
+            print("\nBot:", answer)
+        else:
+            print("\nBot: Here is what I found:")
+
+        # Display sources
         for result in response.get("results", []):
-            print(result["title"])
-            print(result["url"])
+            print("-", result["title"])
+            print("  ", result["url"])
 
         print()
 
-    except Exception as e:
-        print("Error:", e)
+    except Exception as error:
+        print("Bot: Something went wrong:", error)
