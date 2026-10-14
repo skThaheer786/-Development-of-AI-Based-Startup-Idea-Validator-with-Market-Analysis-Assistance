@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>Idea Foundry — Startup idea intake</title>
+  <style>
+    :root { color-scheme: light; --ink:#20251f; --muted:#697168; --line:#dedfd7; --paper:#fbfaf7; --green:#345f48; --lime:#d8ed9d; --error:#a3372f; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; background:#f2f1ec; color:var(--ink); font:15px/1.55 "Segoe UI",Arial,sans-serif }
+    .shell { max-width:1160px; margin:auto; padding:24px 32px 44px }
+    header { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #d9dad2; padding:6px 0 20px }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.03em }
+    .mark { display:grid; place-items:center; width:32px; height:32px; border-radius:10px; color:#fff; background:var(--green); font-size:18px }
+    .step { color:var(--muted); font-size:13px }
+    main { display:grid; grid-template-columns:.92fr 1.08fr; gap:64px; padding:68px 0 30px; align-items:start }
+    .intro { padding:8px 0 0 16px }
+    .eyebrow { display:inline-flex; align-items:center; gap:8px; color:var(--green); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.12em }
+    .eyebrow:before { content:""; width:20px; height:1px; background:currentColor }
+    h1 { margin:18px 0 16px; max-width:450px; font:500 clamp(38px,5vw,58px)/1.04 Georgia,serif; letter-spacing:-.045em }
+    .intro p { max-width:390px; color:var(--muted); font-size:16px }
+    .note { display:flex; gap:12px; align-items:flex-start; max-width:360px; margin-top:44px; padding:16px; border:1px solid #ddded5; border-radius:12px; color:#555e53; font-size:13px }
+    .note span:first-child { font-size:17px }
+    .form-card { background:var(--paper); border:1px solid #e3e2db; border-radius:18px; padding:30px 32px; box-shadow:0 14px 40px #252b1d0a }
+    .form-heading { margin:0 0 5px; font:500 25px Georgia,serif; letter-spacing:-.025em }
+    .form-subtitle { margin:0 0 24px; color:var(--muted); font-size:13px }
+    .field { margin:0 0 18px }
+    label { display:block; margin-bottom:7px; font-size:13px; font-weight:650 }
+    .optional { color:#858a81; font-weight:400 }
+    input,select,textarea { display:block; width:100%; border:1px solid #d9dbd3; border-radius:9px; background:#fff; color:var(--ink); font:14px "Segoe UI",Arial,sans-serif; padding:12px 13px; outline:none; transition:border .15s,box-shadow .15s }
+    input::placeholder,textarea::placeholder { color:#a0a39c }
+    input:focus,select:focus,textarea:focus { border-color:#63866c; box-shadow:0 0 0 3px #63866c20 }
+    textarea { resize:vertical; min-height:130px }
+    .hint { display:flex; justify-content:space-between; gap:8px; margin-top:6px; color:#858a81; font-size:11px }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:14px }
+    .details { min-height:82px }
+    .required { color:#ad554b }
+    .submit { display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:22px; padding:14px 16px; border:0; border-radius:9px; background:var(--green); color:white; font:600 14px "Segoe UI",Arial,sans-serif; cursor:pointer; transition:background .15s,transform .15s }
+    .submit:hover { background:#294d3a; transform:translateY(-1px) }
+    .submit:disabled { cursor:wait; opacity:.7; transform:none }
+    .arrow { font-size:18px; line-height:12px }
+    .status { display:none; margin:16px 0 0; padding:12px 14px; border-radius:8px; font-size:13px }
+    .status.visible { display:block }
+    .status.success { color:#245536; background:#edf5e9; border:1px solid #cde1c6 }
+    .status.error { color:var(--error); background:#fbefed; border:1px solid #efcfca }
+    .fineprint { margin:13px 0 0; text-align:center; color:#898d85; font-size:11px }
+    footer { margin-top:22px; color:#8a8e85; font-size:11px }
+    @media (max-width:800px) { main { grid-template-columns:1fr; gap:30px; padding-top:44px } .intro { padding:0 } .note { margin-top:24px } }
+    @media (max-width:520px) { .shell { padding:16px 18px 30px } main { padding-top:34px } .form-card { padding:24px 19px } .row { grid-template-columns:1fr; gap:0 } .step { font-size:11px } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><span class="mark" aria-hidden="true">✳</span> Idea Foundry</div>
+      <div class="step">MILESTONE 1 <span aria-hidden="true">·</span> IDEA INTAKE</div>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="eyebrow">Start with the idea</div>
+        <h1>Every good venture begins with a question.</h1>
+        <p>Tell us what you’re imagining. We’ll turn your starting point into a clearer brief for exploring the market.</p>
+        <div class="note"><span aria-hidden="true">✦</span><span>A first draft is enough. Share the problem you see, who feels it, and what you’d like to change.</span></div>
+      </section>
+      <section class="form-card" aria-labelledby="form-title">
+        <h2 id="form-title" class="form-heading">Describe your startup idea</h2>
+        <p class="form-subtitle">Fields marked with <span class="required">*</span> are required.</p>
+        <form id="idea-form" novalidate>
+          <div class="field">
+            <label for="description">Your idea <span class="required">*</span></label>
+            <textarea id="description" name="description" minlength="20" maxlength="3000" required placeholder="What problem are you solving, and how would your idea help?"></textarea>
+            <div class="hint"><span>Include the problem and your proposed approach.</span><span id="char-count">0 / 3000</span></div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="industry">Industry <span class="required">*</span></label>
+              <select id="industry" name="industry" required>
+                <option value="">Choose an industry</option>
+                <option>Artificial intelligence</option><option>Education</option><option>Financial services</option><option>Food and agriculture</option><option>Healthcare</option><option>Climate and energy</option><option>Retail and commerce</option><option>Transportation and logistics</option><option>Media and entertainment</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="customers">Target customers <span class="required">*</span></label>
+              <input id="customers" name="target_customers" required maxlength="300" placeholder="Who would use or pay for it?">
+            </div>
+          </div>
+          <div class="field">
+            <label for="details">Relevant details <span class="optional">(optional)</span></label>
+            <textarea id="details" name="relevant_details" class="details" maxlength="1500" placeholder="Any features, context, or assumptions you already have in mind?"></textarea>
+          </div>
+          <button class="submit" id="submit-button" type="submit"><span id="button-label">Submit idea</span><span class="arrow" aria-hidden="true">→</span></button>
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <p class="fineprint">Your idea will be sent securely to the project backend for analysis.</p>
+        </form>
+      </section>
+    </main>
+    <footer>Idea Foundry · Startup idea validation</footer>
+  </div>
+  <script>
+    // The backend team can override this before loading the page, e.g. window.IDEA_API_URL = "http://localhost:8000/api/ideas".
+    const API_URL = window.IDEA_API_URL || "/api/ideas";
+    const form = document.querySelector("#idea-form");
+    const description = document.querySelector("#description");
+    const statusBox = document.querySelector("#status");
+    const submitButton = document.querySelector("#submit-button");
+    const buttonLabel = document.querySelector("#button-label");
+    description.addEventListener("input", () => document.querySelector("#char-count").textContent = `${description.value.length} / 3000`);
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = `status visible ${type}`;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      statusBox.className = "status";
+      if (!form.reportValidity()) return;
+      if (description.value.trim().length < 20) {
+        description.setCustomValidity("Please describe your idea in at least 20 characters.");
+        description.reportValidity();
+        description.addEventListener("input", () => description.setCustomValidity(""), { once:true });
+        return;
+      }
+      const payload = {
+        description: description.value.trim(),
+        industry: form.elements.industry.value,
+        target_customers: form.elements.target_customers.value.trim(),
+        relevant_details: form.elements.relevant_details.value.trim()
+      };
+      submitButton.disabled = true;
+      buttonLabel.textContent = "Sending your idea…";
+      try {
+        const response = await fetch(API_URL, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+          body:JSON.stringify(payload)
+        });
+        let result = {};
+        try { result = await response.json(); } catch (_) { /* Handle non-JSON API errors below. */ }
+        if (!response.ok) throw new Error(result.detail || result.message || `The server returned an error (${response.status}).`);
+        showStatus(result.message || "Your idea has been submitted. The analysis workflow can pick it up from here.", "success");
+        form.reset();
+        document.querySelector("#char-count").textContent = "0 / 3000";
+      } catch (error) {
+        showStatus(error instanceof TypeError ? "We couldn’t reach the server. Check that the backend is running, then try again." : error.message, "error");
+      } finally {
+        submitButton.disabled = false;
+        buttonLabel.textContent = "Submit idea";
+      }
+    });
+  </script>
+</body>
+</html>
