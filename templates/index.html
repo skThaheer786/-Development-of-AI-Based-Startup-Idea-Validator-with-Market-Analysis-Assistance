@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Idea Validator</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"
+            defer></script>
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <div class="logo">S</div>
+            <div>
+                <h1>Startup Idea Validator</h1>
+                <p>Turn your startup vision into your next big opportunity.</p>
+            </div>
+        </header>
+
+        <section class="form-card">
+            <h2>Submit Your Startup Idea</h2>
+            <p class="subtitle">
+                Tell us about your idea to begin the validation process.
+            </p>
+
+            <form id="ideaForm">
+                <div class="form-group">
+                    <label for="idea_description">
+                        Startup Idea Description <span>*</span>
+                    </label>
+                    <textarea
+                        id="idea_description"
+                        name="idea_description"
+                        minlength="20"
+                        maxlength="5000"
+                        placeholder="Describe the problem your startup will solve and how your idea works..."
+                        required></textarea>
+                    <small>At least 20 characters (maximum 5000).</small>
+                    <p class="field-error" id="idea_description_error"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="industry">Industry <span>*</span></label>
+                    <select id="industry" name="industry" required>
+                        <option value="">Select an industry</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Education">Education</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Agriculture">Agriculture</option>
+                        <option value="E-commerce">E-commerce</option>
+                        <option value="Food and Beverage">Food and Beverage</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Environment">Environment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <p class="field-error" id="industry_error"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="target_customers">
+                        Target Customers <span>*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="target_customers"
+                        name="target_customers"
+                        maxlength="500"
+                        placeholder="e.g., college students, small businesses"
+                        required>
+                    <p class="field-error" id="target_customers_error"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="relevant_details">Relevant Details</label>
+                    <textarea
+                        id="relevant_details"
+                        name="relevant_details"
+                        maxlength="2000"
+                        placeholder="Mention your budget, location, competitors, or special features (optional)."></textarea>
+                    <small>Optional — maximum 2000 characters.</small>
+                    <p class="field-error" id="relevant_details_error"></p>
+                </div>
+
+                <div id="status" class="status" role="status"
+                     aria-live="polite"></div>
+
+                <button type="submit" id="submitBtn">
+                    Submit Startup Idea
+                </button>
+            </form>
+
+            <div id="result" class="result" hidden></div>
+        </section>
+
+        <footer>Startup Idea Validator · Idea Submission Workspace</footer>
+    </main>
+</body>
+</html>
