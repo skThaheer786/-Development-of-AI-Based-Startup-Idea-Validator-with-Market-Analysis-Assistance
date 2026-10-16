@@ -1,181 +1,493 @@
 
+/* =========================================
+   AI STARTUP IDEA VALIDATOR
+   Blue and White Theme
+   ========================================= */
+
+/* 1. Global styles */
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
+:root {
+    --primary: #1769e8;
+    --primary-dark: #1055c0;
+    --primary-light: #e8f0ff;
+    --background: #f2f6fc;
+    --surface: #ffffff;
+    --text: #17345d;
+    --muted: #64748b;
+    --border: #dce6f4;
+    --success: #15803d;
+    --danger: #dc2626;
+    --radius: 14px;
+    --shadow: 0 6px 24px rgba(30, 65, 110, 0.07);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f3f7fc;
-    color: #172b4d;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-.container {
-    width: min(760px, 92%);
-    margin: 45px auto;
+/* 2. Header */
+header {
+    background: linear-gradient(135deg, #1769e8, #1048a8);
+    color: #ffffff;
+    padding: 32px 7%;
+    box-shadow: 0 4px 18px rgba(23, 105, 232, 0.15);
 }
 
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+header h1 {
+    font-size: clamp(24px, 4vw, 34px);
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+header p {
+    color: #e7efff;
+    font-size: 16px;
+}
+
+/* 3. Main container */
+main {
+    width: min(1100px, 92%);
+    margin: 32px auto;
+}
+
+/* 4. Section cards */
+.card {
+    width: 100%;
+    background: var(--surface);
+    padding: 30px;
     margin-bottom: 28px;
+    border: 1px solid #edf1f8;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow-wrap: anywhere;
 }
 
-.logo {
-    width: 52px;
-    height: 52px;
-    display: grid;
-    place-items: center;
-    border-radius: 14px;
-    background: #1769e0;
-    color: white;
-    font-size: 26px;
-    font-weight: bold;
+.card h2 {
+    color: var(--text);
+    font-size: clamp(22px, 3vw, 28px);
+    line-height: 1.4;
+    margin-bottom: 10px;
 }
 
-h1 {
-    font-size: 25px;
-    margin: 0 0 7px;
+.card > p {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 18px;
 }
 
-.header p, .subtitle {
-    color: #64748b;
-    margin: 0;
-    line-height: 1.5;
-}
-
-.form-card {
-    padding: 32px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px #17365d0c;
-}
-
-h2 {
-    margin-top: 0;
-    margin-bottom: 9px;
-    font-size: 22px;
-}
-
-.subtitle {
-    margin-bottom: 28px;
-}
-
-.form-group {
-    margin-bottom: 22px;
-}
-
+/* 5. Form labels */
 label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 9px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    margin: 20px 0 8px;
 }
 
-label span {
-    color: #dc2626;
-}
-
-input, select, textarea {
+/* 6. Input fields */
+input,
+textarea,
+select {
     display: block;
     width: 100%;
-    padding: 13px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font: inherit;
-    color: #172b4d;
-    background: white;
+    max-width: 100%;
+    padding: 13px 15px;
+    border: 1px solid #cbd8ea;
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 textarea {
     min-height: 125px;
     resize: vertical;
-    line-height: 1.5;
 }
 
-input:focus, select:focus, textarea:focus {
-    outline: 2px solid #93c5fd;
-    border-color: #1769e0;
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8;
 }
 
-small {
-    display: block;
-    margin-top: 7px;
-    color: #64748b;
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(23, 105, 232, 0.12);
 }
 
-.field-error {
-    color: #dc2626;
-    font-size: 13px;
-    margin: 6px 0 0;
-}
-
-.status {
-    margin-bottom: 14px;
-    line-height: 1.5;
-}
-
-.status:empty {
-    display: none;
-}
-
+/* 7. Buttons */
 button {
+    display: block;
     width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    background: #1769e0;
-    color: white;
+    padding: 14px 20px;
+    margin-top: 20px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #ffffff;
+    font-family: inherit;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
+    line-height: 1.5;
     cursor: pointer;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 button:hover {
-    background: #1255b8;
+    background: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(23, 105, 232, 0.18);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:focus-visible {
+    outline: 3px solid #93baff;
+    outline-offset: 3px;
 }
 
 button:disabled {
     opacity: 0.65;
-    cursor: wait;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
-.result {
-    margin-top: 24px;
-    padding: 18px;
-    border-radius: 10px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+/* Market research secondary button */
+#search-market-btn,
+.secondary {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: #c7dcff;
+}
+
+#search-market-btn:hover,
+.secondary:hover {
+    background: #d8e7ff;
+    color: #1048a8;
+}
+
+/* 8. Status messages */
+.status {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
-.result h3 {
-    margin-top: 0;
+#idea-status:empty,
+#market-status:empty {
+    display: none;
 }
 
-.result p {
-    line-height: 1.6;
+/* 9. Result headings */
+#idea-results,
+#market-results-list {
+    width: 100%;
+    min-width: 0;
+    margin-top: 22px;
+}
+
+#idea-results > h3,
+#market-results-list > h3 {
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1.4;
+    margin: 24px 0 14px;
+    overflow-wrap: anywhere;
+}
+
+/* 10. Individual result cards */
+.result-card,
+#market-results-list article {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 22px;
+    margin: 14px 0;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(30, 65, 110, 0.035);
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.result-card:hover,
+#market-results-list article:hover {
+    border-color: #b8d1f5;
+    box-shadow: 0 5px 18px rgba(30, 65, 110, 0.07);
+}
+
+/* 11. Result titles */
+.result-card h3,
+.result-card h4,
+#market-results-list article h3,
+#idea-results h3 {
+    color: var(--text);
+    font-size: 19px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    overflow-wrap: anywhere;
+}
+
+/* 12. Result descriptions */
+.result-card p,
+#market-results-list article p,
+#idea-results p {
+    color: #405675;
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 10px 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* 13. Source links */
+.result-card a,
+#market-results-list article a {
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 12px;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.result-card a:hover,
+#market-results-list article a:hover {
+    text-decoration: underline;
+}
+
+/* 14. Structured AI results */
+#idea-results strong {
+    color: var(--text);
+}
+
+#idea-results pre {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px;
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #f5f8fd;
+    color: #17345d;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.7;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-x: auto;
 }
 
+/* 15. Lists, if used in results */
+#idea-results ul,
+#idea-results ol,
+#market-results-list ul,
+#market-results-list ol {
+    padding-left: 24px;
+    margin: 12px 0;
+}
+
+#idea-results li,
+#market-results-list li {
+    margin: 8px 0;
+    line-height: 1.7;
+}
+
+/* 16. Footer */
 footer {
+    padding: 25px 16px;
+    color: var(--muted);
+    font-size: 14px;
     text-align: center;
-    color: #64748b;
-    font-size: 13px;
-    margin-top: 25px;
 }
 
-@media (max-width: 500px) {
-    .container {
-        margin: 24px auto;
+/* 17. Text selection */
+::selection {
+    background: #cfe1ff;
+    color: #123d7a;
+}
+
+/* 18. Responsive tablet layout */
+@media (max-width: 768px) {
+    header {
+        padding: 25px 5%;
     }
 
-    .form-card {
-        padding: 20px;
+    main {
+        width: 94%;
+        margin: 22px auto;
     }
 
-    h1 {
+    .card {
+        padding: 22px;
+        margin-bottom: 20px;
+    }
+
+    .result-card,
+    #market-results-list article {
+        padding: 17px;
+    }
+
+    #idea-results > h3,
+    #market-results-list > h3 {
         font-size: 20px;
+    }
+}
+
+/* 19. Responsive mobile layout */
+@media (max-width: 480px) {
+    header {
+        padding: 22px 5%;
+    }
+
+    header p {
+        font-size: 14px;
+    }
+
+    main {
+        width: 94%;
+        margin: 16px auto;
+    }
+
+    .card {
+        padding: 17px;
+        border-radius: 11px;
+    }
+
+    label {
+        font-size: 14px;
+    }
+
+    input,
+    textarea,
+    select {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .result-card,
+    #market-results-list article {
+        padding: 14px;
+    }
+
+    .result-card h3,
+    .result-card h4,
+    #market-results-list article h3 {
+        font-size: 17px;
+    }
+
+    .result-card p,
+    #market-results-list article p {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    footer {
+        font-size: 12px;
+    }
+}
+
+/* 20. Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Improved market research layout */
+#market-research {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#market-results-list {
+    width: 100%;
+    min-width: 0;
+}
+
+#market-results-list > h3 {
+    font-size: 21px;
+    margin: 24px 0 14px;
+}
+
+#market-results-list .result-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+    margin: 16px 0;
+    border: 1px solid #dce6f4;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow-wrap: anywhere;
+}
+
+#market-results-list .result-card h3 {
+    font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+#market-results-list .result-card p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #405675;
+}
+
+#market-results-list .result-card a {
+    display: inline-block;
+    margin-top: 10px;
+    color: #1769e8;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+#market-results-list .result-card a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    #market-results-list .result-card {
+        padding: 14px;
+    }
+
+    #market-results-list .result-card h3 {
+        font-size: 16px;
+    }
+
+    #market-results-list .result-card p {
+        font-size: 14px;
     }
 }

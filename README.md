@@ -1,75 +1,114 @@
-AI Based Startup Idea Validator
-An academic project exploring how AI agents and live web research can help founders assess startup ideas. The long-term goal is to organize market, customer, competitor, risk, and MVP analysis into a source-backed validation report.
 
-Project status: Early prototype and Milestone 1 planning. The current Python script is an interactive Tavily search chatbot; it is not yet the complete multi-agent startup validation system described in the project goal.
+# AI-Based Startup Idea Validator with Market Analysis Assistance
 
-Project objectives
-Help users structure a startup idea and identify assumptions that need validation.
-Explore market demand, target customers, competitors, and business feasibility.
-Investigate how specialized AI agents could coordinate analysis.
-Retrieve current web information and retain source links for review.
-Recommend a focused minimum viable product (MVP) and present findings clearly.
-Current prototype
-The repository currently contains chatbot.py, a command-line Python program that accepts questions, searches the web through Tavily, and prints an answer and up to three source links. It loads TAVILY_API_KEY from a local .env file.
+## Overview
 
-The milestone document is available as Milestone_1_AI_Startup_Idea_Validator_.docx. The repository's default branch is taheer.
+An AI-powered application that helps users evaluate startup ideas by extracting structured information using Groq and retrieving market and competitor information using the Tavily Search API.
 
-Technology
-Python
-Tavily Search API (tavily-python)
-python-dotenv for local environment-variable loading
-Setup
-1. Get the source code
-git clone https://github.com/skThaheer786/-Development-of-AI-Based-Startup-Idea-Validator-with-Market-Analysis-Assistance.git
-cd ./-Development-of-AI-Based-Startup-Idea-Validator-with-Market-Analysis-Assistance
-2. Create and activate a virtual environment (recommended)
-python -m venv .venv
-Windows PowerShell:
+## Features
 
-.venv\Scripts\Activate.ps1
-macOS or Linux:
+- Startup idea submission with input validation
+- Structured idea extraction using Groq
+- Automated web search query generation
+- Market and competitor research using Tavily
+- Multi-agent workflow orchestration
+- Combined results displayed in a web interface
+- Error handling for invalid inputs and failed requests
 
-source .venv/bin/activate
-3. Install dependencies
-python -m pip install python-dotenv tavily-python
-4. Configure Tavily
-Create a .env file in the project root and add your own API key:
+## Technology Stack
 
-TAVILY_API_KEY=your_tavily_api_key
-Keep .env private. Do not commit API keys, passwords, or other secrets to GitHub. If the repository's .gitignore does not already contain .env, add it before committing credentials locally.
+- Python
+- Flask
+- Groq API
+- Tavily Search API
+- HTML, CSS, JavaScript
+- python-dotenv
 
-5. Run the prototype
-python chatbot.py
-Enter a question at the prompt. Type exit to quit. The script sends the question to Tavily and prints its answer (when returned) and source links.
+## Project Structure
 
-Milestone 1 scope
-The foundational milestone covers:
+    project/
+    ├── app.py
+    ├── orchestrator.py
+    ├── structured_extraction.py
+    ├── web_search_agent.py
+    ├── market_analysis.py
+    ├── templates/
+    │   └── index.html
+    ├── static/
+    │   ├── style.css
+    │   └── script.js
+    ├── .env
+    ├── .gitignore
+    └── README.md
 
-Project understanding and startup validation concepts, with one sample idea.
-Responsibilities and handoffs for the proposed AI agents.
-A system architecture and information-flow diagram.
-An idea-submission wireframe and sample structured output.
-A working web-search API test with readable results.
-The proposed agents are:
+## Requirements
 
-Web Search Agent
-Market Analysis Agent
-Competitor Analysis Agent
-SWOT and Risk Analysis Agent
-MVP Recommendation Agent
-Report Generation Agent
-Planned direction
-Future work may extend the search prototype into a complete validation workflow:
+- Python 3.10 or newer
+- Groq API key
+- Tavily API key
+- Internet connection
 
-Collect an idea description, target customers, industry, and other relevant context.
-Convert the submission into a structured idea brief.
-Gather market and competitor evidence from web search.
-Run focused analyses and retain supporting sources.
-Summarize findings, risks, assumptions, and an MVP recommendation in a final report.
-These are planned capabilities and should not be considered implemented until they are added and documented in the codebase.
+## Installation
 
-Security and responsible use
-Store API keys in environment variables or a local .env file excluded from version control.
-Do not put confidential personal or business information into external search or AI services without authorization.
-Verify important claims against the linked sources. Search results and AI-generated summaries can be incomplete, outdated, or incorrect.
-Treat this project as a decision-support tool; its output does not guarantee that a startup will succeed.
+1. Clone the repository.
+
+       git clone YOUR_TEAM_REPOSITORY_URL
+       cd YOUR_PROJECT_FOLDER
+
+2. Create a virtual environment.
+
+       python -m venv .venv
+
+3. Activate it on Windows PowerShell.
+
+       .\.venv\Scripts\Activate.ps1
+
+4. Install dependencies.
+
+       python -m pip install Flask python-dotenv groq tavily-python
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+    GROQ_API_KEY=your_groq_api_key
+    TAVILY_API_KEY=your_tavily_api_key
+
+Never commit your actual API keys.
+
+## Run the Application
+
+    python app.py
+
+Open the following URL in your browser:
+
+    http://127.0.0.1:5000
+
+## API Endpoints
+
+- `POST /api/ideas` — extracts structured startup idea information.
+- `POST /api/market-search` — retrieves market and competitor search results.
+- `POST /api/orchestrate` — executes idea extraction and market search in sequence.
+
+## Testing
+
+Test the workflow using startup ideas from:
+
+1. Education technology
+2. Food technology
+3. Agriculture technology
+
+Verify the extracted fields, search queries, result titles, summaries, and source URLs.
+
+Also test missing required fields, invalid JSON, API failures, and empty search results.
+
+## Security
+
+- Store API keys in environment variables.
+- Keep `.env` out of Git.
+- Do not expose API keys in frontend JavaScript.
+- Validate user inputs and handle external API errors.
+
+## Current Milestone
+
+Milestone 1: Startup idea submission, structured extraction, web search integration, and initial workflow orchestration.

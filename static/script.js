@@ -1,133 +1,329 @@
 
-const form = document.getElementById("ideaForm");
-const submitBtn = document.getElementById("submitBtn");
-const statusBox = document.getElementById("status");
-const resultBox = document.getElementById("result");
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("idea-form");
 
-const fields = [
-    "idea_description",
-    "industry",
-    "target_customers",
-    "relevant_details"
-];
+    const submitButton = document.getElementById("submit-idea-btn");
+    const ideaStatus = document.getElementById("idea-status");
+    const ideaResults = document.getElementById("idea-results");
 
-fields.forEach((name) => {
-    const field = document.getElementById(name);
+    const marketButton = document.getElementById("search-market-btn");
+    const marketStatus = document.getElementById("market-status");
+    const marketResults = document.getElementById("market-results-list");
 
-    field.addEventListener("input", () => {
-        document.getElementById(`${name}_error`).textContent = "";
-    });
+    const fullButton = document.getElementById("full-analysis-btn");
+    const fullStatus = document.getElementById("full-analysis-status");
+    const fullResults = document.getElementById("full-analysis-results");
 
-    field.addEventListener("change", () => {
-        document.getElementById(`${name}_error`).textContent = "";
-    });
-});
+    // Safely create elements without inserting untrusted HTML.
+    function addText(parent, tag, text, className = "") {
+        const element = document.createElement(tag);
+        element.textContent = text ?? "";
 
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+        if (className) {
+            element.className = className;
+        }
 
-    statusBox.textContent = "";
-    resultBox.replaceChildren();
-    resultBox.hidden = true;
-
-    fields.forEach((name) => {
-        document.getElementById(`${name}_error`).textContent = "";
-    });
-
-    const idea = {
-        idea_description: document.getElementById("idea_description").value.trim(),
-        industry: document.getElementById("industry").value.trim(),
-        target_customers: document.getElementById("target_customers").value.trim(),
-        relevant_details: document.getElementById("relevant_details").value.trim()
-    };
-
-    const errors = {};
-
-    if (idea.idea_description.length < 20) {
-        errors.idea_description = "Enter at least 20 characters.";
+        parent.appendChild(element);
+        return element;
     }
 
-    if (idea.idea_description.length > 5000) {
-        errors.idea_description = "Maximum 5000 characters allowed.";
-    }
+    // Render nested JSON objects and arrays.
+    function renderData(parent, data) {
+        if (data === null || data === undefined) return;
 
-    if (!idea.industry) {
-        errors.industry = "Please select an industry.";
-    }
+        if (Array.isArray(data)) {
+            const list = document.createElement("ul");
 
-    if (!idea.target_customers) {
-        errors.target_customers = "Please enter your target customers.";
-    }
+            data.forEach(item => {
+                const li = document.createElement("li");
 
-    if (idea.target_customers.length > 500) {
-        errors.target_customers = "Maximum 500 characters allowed.";
-    }
+                if (item && typeof item === "object") {
+                    renderData(li, item);
+                } else {
+                    li.textContent = String(item ?? "");
+                }
 
-    if (idea.relevant_details.length > 2000) {
-        errors.relevant_details = "Maximum 2000 characters allowed.";
-    }
+                list.appendChild(li);
+            });
 
-    if (Object.keys(errors).length > 0) {
-        Object.entries(errors).forEach(([name, message]) => {
-            document.getElementById(`${name}_error`).textContent = message;
+            parent.appendChild(list);
+            return;
+        }
+
+        if (typeof data !== "object") {
+            addText(parent, "p", String(data));
+            return;
+        }
+
+        Object.entries(data).forEach(([key, value]) => {
+            const label = key
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, char => char.toUpperCase());
+
+            const section = document.createElement("div");
+            section.className = "result-card";
+
+            addText(section, "h4", label);
+            renderData(section, value);
+
+            parent.appendChild(section);
         });
-
-        statusBox.textContent = "Please correct the highlighted fields.";
-        return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting...";
-    statusBox.textContent = "Sending your idea to the server...";
+    // Read the current startup idea from the form.
+    function getIdea() {
+        const fields = new FormData(form);
 
-    try {
-        const response = await fetch("/api/ideas", {
+        return {
+            idea_description: String(
+                fields.get("idea_description") || ""
+            ).trim(),
+            industry: String(
+                fields.get("industry") || ""
+            ).trim(),
+            target_customers: String(
+                fields.get("target_customers") || ""
+            ).trim(),
+            relevant_details: String(
+                fields.get("relevant_details") || ""
+            ).trim()
+        };
+    }
+
+    // Validate required inputs before making API requests.
+    function validateIdea(idea) {
+        if (idea.idea_description.length < 20) {
+            throw new Error(
+                "Please enter an idea description of at least 20 characters."
+            );
+        }
+
+        if (idea.idea_description.length > 5000) {
+            throw new Error("Idea description is too long.");
+        }
+
+        if (!idea.industry) {
+            throw new Error("Please enter the industry.");
+        }
+
+        if (!idea.target_customers) {
+            throw new Error("Please enter your target customers.");
+        }
+
+        return idea;
+    }
+
+    // Send JSON to the Flask backend.
+    async function postJSON(endpoint, payload) {
+        const response = await fetch(endpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(idea)
+            body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        let data;
 
-        if (!response.ok || !data.success) {
-            if (data.errors) {
-                Object.entries(data.errors).forEach(([name, message]) => {
-                    const errorElement = document.getElementById(`${name}_error`);
-                    if (errorElement) {
-                        errorElement.textContent = message;
-                    }
-                });
-            }
-
-            throw new Error(data.message || "Submission failed.");
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error("The server returned an invalid response.");
         }
 
-        statusBox.textContent = data.message;
+        if (!response.ok || data.success === false) {
+            throw new Error(
+                data.error || `Request failed with status ${response.status}.`
+            );
+        }
 
-        const heading = document.createElement("h3");
-        heading.textContent = "Submitted Idea Details";
-
-        const description = document.createElement("p");
-        description.textContent = `Idea: ${data.idea.idea_description}`;
-
-        const industry = document.createElement("p");
-        industry.textContent = `Industry: ${data.idea.industry}`;
-
-        const customers = document.createElement("p");
-        customers.textContent = `Target Customers: ${data.idea.target_customers}`;
-
-        const details = document.createElement("p");
-        details.textContent = `Relevant Details: ${data.idea.relevant_details || "Not provided"}`;
-
-        resultBox.append(heading, description, industry, customers, details);
-        resultBox.hidden = false;
-
-    } catch (error) {
-        statusBox.textContent = `Error: ${error.message}`;
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Startup Idea";
+        return data;
     }
+
+    // Display individual web search results.
+    function renderSearchResults(parent, research) {
+        const queries = research.queries || [];
+        const results = research.results || [];
+
+        addText(parent, "h3", "Generated Search Queries");
+
+        if (queries.length === 0) {
+            addText(parent, "p", "No search queries were returned.");
+        } else {
+            const queryList = document.createElement("ul");
+
+            queries.forEach(query => {
+                addText(queryList, "li", query);
+            });
+
+            parent.appendChild(queryList);
+        }
+
+        addText(parent, "h3", "Market & Competitor Sources");
+
+        if (results.length === 0) {
+            addText(parent, "p", "No web sources were found.");
+            return;
+        }
+
+        results.forEach((result, index) => {
+            const card = document.createElement("article");
+            card.className = "result-card";
+
+            addText(
+                card,
+                "h3",
+                `${index + 1}. ${result.title || "Untitled source"}`
+            );
+
+            addText(
+                card,
+                "p",
+                result.content || "No summary available."
+            );
+
+            if (result.query) {
+                addText(card, "p", `Search query: ${result.query}`);
+            }
+
+            if (result.url) {
+                try {
+                    const url = new URL(result.url);
+
+                    if (url.protocol === "https:" || url.protocol === "http:") {
+                        const link = document.createElement("a");
+                        link.href = url.href;
+                        link.target = "_blank";
+                        link.rel = "noopener noreferrer";
+                        link.textContent = "Read original source";
+
+                        card.appendChild(link);
+                    }
+                } catch {
+                    addText(card, "p", "Source URL is invalid.");
+                }
+            }
+
+            parent.appendChild(card);
+        });
+    }
+
+    // TASK 2: Groq structured idea extraction.
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        if (!form.reportValidity()) return;
+
+        submitButton.disabled = true;
+        ideaStatus.textContent = "Extracting startup idea...";
+        ideaResults.replaceChildren();
+
+        try {
+            const idea = validateIdea(getIdea());
+            const data = await postJSON("/api/ideas", idea);
+
+            addText(ideaResults, "h3", "Structured Startup Idea");
+
+            const result = data.extracted_idea ?? data.idea;
+
+            if (result === undefined) {
+                throw new Error(
+                    "The server response did not contain extracted idea data."
+                );
+            }
+
+            renderData(ideaResults, result);
+
+            ideaStatus.textContent =
+                data.message || "Idea extraction completed successfully.";
+
+        } catch (error) {
+            ideaStatus.textContent = error.message;
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+
+    // TASK 3: Tavily market and competitor research.
+    marketButton.addEventListener("click", async () => {
+        if (!form.reportValidity()) return;
+
+        marketButton.disabled = true;
+        marketStatus.textContent = "Searching the market...";
+        marketResults.replaceChildren();
+
+        try {
+            const idea = validateIdea(getIdea());
+            const data = await postJSON("/api/market-search", idea);
+            const research = data.market_research;
+
+            if (!research || typeof research !== "object") {
+                throw new Error("Invalid market research response.");
+            }
+
+            renderSearchResults(marketResults, research);
+
+            marketStatus.textContent =
+                `Market research completed. Found ${
+                    research.total_results ?? (research.results || []).length
+                } sources.`;
+
+        } catch (error) {
+            marketStatus.textContent = error.message;
+        } finally {
+            marketButton.disabled = false;
+        }
+    });
+
+    // TASK 4 and TASK 5: Complete orchestrated workflow.
+    fullButton.addEventListener("click", async () => {
+        if (!form.reportValidity()) return;
+
+        fullButton.disabled = true;
+        fullStatus.textContent =
+            "Running idea extraction and market research...";
+        fullResults.replaceChildren();
+
+        try {
+            const idea = validateIdea(getIdea());
+            const data = await postJSON("/api/orchestrate", idea);
+
+            if (!data.structured_idea || !data.market_research) {
+                throw new Error(
+                    "The workflow response is missing required data."
+                );
+            }
+
+            addText(fullResults, "h3", "Structured Startup Idea");
+            renderData(fullResults, data.structured_idea);
+
+            addText(fullResults, "h3", "Workflow Stages");
+
+            const workflow = data.workflow || [];
+            const workflowList = document.createElement("ol");
+
+            workflow.forEach(stage => {
+                addText(
+                    workflowList,
+                    "li",
+                    String(stage).replace(/_/g, " ")
+                );
+            });
+
+            fullResults.appendChild(workflowList);
+
+            renderSearchResults(fullResults, data.market_research);
+
+            fullStatus.textContent =
+                `Full workflow completed successfully. ${
+                    data.market_research.total_results ??
+                    (data.market_research.results || []).length
+                } market research sources retrieved.`;
+
+        } catch (error) {
+            fullStatus.textContent = error.message;
+        } finally {
+            fullButton.disabled = false;
+        }
+    });
 });
