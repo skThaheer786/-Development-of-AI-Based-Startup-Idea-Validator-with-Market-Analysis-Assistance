@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from structured_extraction import extract_startup_idea
 from web_search_agent import search_startup_market
+from market_opportunity_agent import analyze_market_opportunity
 
 load_dotenv()
 
