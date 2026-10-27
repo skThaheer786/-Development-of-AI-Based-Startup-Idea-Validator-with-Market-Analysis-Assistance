@@ -89,6 +89,7 @@ Open the following URL in your browser:
 - `POST /api/ideas` — extracts structured startup idea information.
 - `POST /api/market-search` — retrieves market and competitor search results.
 - `POST /api/orchestrate` — executes idea extraction and market search in sequence.
+- - `POST /api/market-opportunity` — researches market size and trends, analyzes customer segment hypotheses, and returns source-linked results.
 
 ## Testing
 
@@ -112,3 +113,4 @@ Also test missing required fields, invalid JSON, API failures, and empty search 
 ## Current Milestone
 
 Milestone 1: Startup idea submission, structured extraction, web search integration, and initial workflow orchestration.
+Milestone 2, Task 1: Market opportunity and customer segmentation analysis using Tavily evidence and Groq structured analysis. Configure `GROQ_API_KEY` and `TAVILY_API_KEY` before using the endpoint. Treat segments as hypotheses and verify market claims against their linked sources.
