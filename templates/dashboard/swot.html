@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, source_chips, agent_error, no_data %}
+
+{% block title %}SWOT Analysis — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+{% set swot_res = (analyses.get('swot_risk', {}).get('data', {}) or {}) %}
+{% set sources = (analyses.get('report', {}).get('data', {}) or {}).get('all_sources', []) or swot_res.research_sources or [] %}
+
+{% if not swot_res %}
+  {{ no_data(idea, 'SWOT analysis') }}
+{% else %}
+{{ agent_error(swot_res, idea) }}
+{% if not swot_res._error %}
+<div class="notice notice-info mb-4"><i class="bi bi-info-circle"></i><div>
+  Every point is written for <strong>{{ idea.title }}</strong> and tagged with where it comes from:
+  <span class="basis basis-idea">From your idea</span> <span class="basis basis-sourced">Sourced</span> <span class="basis basis-competitor">Competitor data</span> <span class="basis basis-ai">AI inference</span>.
+</div></div>
+
+<div class="row g-4 mb-4">
+  {% for key, title, icon, color in [('strengths','Strengths','bi-hand-thumbs-up-fill','success'),('weaknesses','Weaknesses','bi-hand-thumbs-down-fill','danger'),('opportunities','Opportunities','bi-lightbulb-fill','primary'),('threats','Threats','bi-exclamation-triangle-fill','warning')] %}
+  <div class="col-lg-6">
+    <div class="card-custom h-100" style="border-top: 4px solid var(--bs-{{ color }});">
+      <div class="card-custom-header"><h6 class="mb-0 text-{{ color }}{% if color == 'warning' %}-emphasis{% endif %}"><i class="bi {{ icon }} me-2"></i>{{ title }}</h6></div>
+      <div class="card-custom-body">
+        {% for it in swot.get(key, []) %}
+        <div class="insight-item">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <span class="insight-title">{{ it | item_text('point') }}</span>{{ basis(it.basis if it is mapping else 'ai_inference') }}
+          </div>
+          {% if it is mapping and it.why %}<div class="fs-7 text-muted mt-1">{{ it.why }}</div>{% endif %}
+          {% if it is mapping %}<div class="mt-1">{{ source_chips(it.source_ids, sources) }}</div>{% endif %}
+        </div>
+        {% else %}<div class="text-muted fs-7">Nothing returned for this quadrant.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% set cs = swot_res.cross_strategies or {} %}
+{% if cs and (cs.SO or cs.WO or cs.ST or cs.WT) %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-diagram-3 me-2 text-primary"></i>Strategy implied by the SWOT</h6></div>
+  <div class="card-custom-body"><div class="row g-3">
+    {% for k, label in [('SO','Use strengths to capture opportunities'),('WO','Fix weaknesses using opportunities'),('ST','Use strengths against threats'),('WT','Minimise weaknesses and threats')] %}
+      {% if cs[k] %}<div class="col-md-6"><div class="plan-col"><h6>{{ k }} · {{ label }}</h6><div class="fs-7">{{ cs[k] }}</div></div></div>{% endif %}
+    {% endfor %}
+  </div></div>
+</div>
+{% endif %}
+{% if swot_res._meta and swot_res._meta.quality_notes %}
+<div class="notice notice-warn"><i class="bi bi-funnel"></i><div>{% for n in swot_res._meta.quality_notes %}<div>{{ n }}</div>{% endfor %}</div></div>
+{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

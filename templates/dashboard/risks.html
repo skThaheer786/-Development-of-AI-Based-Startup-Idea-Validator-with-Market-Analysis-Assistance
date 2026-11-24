@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, source_chips, agent_error, no_data, meter %}
+
+{% block title %}Risk Analysis — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+{% set swot_res = (analyses.get('swot_risk', {}).get('data', {}) or {}) %}
+
+{% if not swot_res %}
+  {{ no_data(idea, 'Risk analysis') }}
+{% else %}
+{{ agent_error(swot_res, idea) }}
+{% if not swot_res._error %}
+{% set risks = risks or [] %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Composite risk score</div>
+    <div class="stat-value {% if (swot_res.overall_risk_score or 0) >= 50 %}text-danger{% elif (swot_res.overall_risk_score or 0) >= 30 %}text-warning{% else %}text-success{% endif %}">{{ swot_res.overall_risk_score if swot_res.overall_risk_score is not none else 'n/a' }}</div>
+    <div class="stat-sub">{{ swot_res.risk_rating }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Risks assessed</div><div class="stat-value">{{ risks|length }}</div><div class="stat-sub">{{ risks|selectattr('severity','equalto','High')|list|length }} high severity</div></div></div>
+  <div class="col-12 col-lg-6"><div class="stat-card"><div class="stat-label">How it is calculated</div>
+    <div class="fs-7 mt-1">Each risk = impact (1-10) × likelihood (1-10). The composite weights the three worst risks at 60% and all risks at 40%. Risk Resistance in the viability score = 100 − composite.</div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-5">
+    <div class="card-custom h-100">
+      <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-grid-3x3 me-2 text-primary"></i>Risk heat-map</h6></div>
+      <div class="card-custom-body">
+        <div class="risk-grid">
+          {% for ib, ilabel in [(3,'High'),(2,'Med'),(1,'Low')] %}
+            <div class="risk-axis">Impact · {{ ilabel }}</div>
+            {% for lb in [1,2,3] %}
+              {% set tone = 'r-high' if ib * lb >= 6 else ('r-med' if ib * lb >= 3 else 'r-low') %}
+              <div class="risk-cell {{ tone }}">
+                {% for r in risks %}
+                  {% set rib = 3 if r.impact_score >= 7 else (2 if r.impact_score >= 4 else 1) %}
+                  {% set rlb = 3 if r.likelihood_score >= 7 else (2 if r.likelihood_score >= 4 else 1) %}
+                  {% if rib == ib and rlb == lb %}<span class="risk-dot" title="{{ r.risk }}">{{ loop.index }}</span>{% endif %}
+                {% endfor %}
+              </div>
+            {% endfor %}
+          {% endfor %}
+          <div></div><div class="risk-axis risk-axis-x" style="grid-column: 2 / span 3;">Likelihood → Low · Medium · High</div>
+        </div>
+        <div class="fs-8 text-muted mt-2">Numbers match the register below.</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card-custom h-100">
+      <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Risk by category</h6></div>
+      <div class="card-custom-body">
+        {% for cat, pts in (swot_res.risk_categories or {}).items() %}
+          <div class="mb-2"><div class="d-flex justify-content-between fs-7"><span>{{ cat }}</span><span class="text-muted">{{ pts }}/100</span></div>
+          <div class="score-meter"><span class="{% if pts >= 56 %}score-low{% elif pts >= 30 %}score-mid{% else %}score-good{% endif %}" style="width: {{ pts }}%"></span></div></div>
+        {% else %}<div class="text-muted fs-7">No categories.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<h5 class="mb-3">Risk register &amp; realistic solutions</h5>
+{% for r in risks %}
+<div class="card-custom mb-3">
+  <div class="card-custom-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+      <div><span class="risk-dot me-2">{{ loop.index }}</span><span class="badge bg-secondary-subtle text-secondary border">{{ r.category }}</span>
+        <span class="insight-title ms-1">{{ r.risk }}</span></div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-8 text-muted">Impact {{ r.impact_score }} × Likelihood {{ r.likelihood_score }} = {{ r.risk_points }}</span>
+        <span class="badge {% if r.severity == 'High' %}bg-danger{% elif r.severity == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ r.severity }}</span>
+      </div>
+    </div>
+    {% if r.impact_reason or r.likelihood_reason %}<div class="fs-8 text-muted mb-2"><strong>Why these scores:</strong> impact — {{ r.impact_reason or 'n/a' }}; likelihood — {{ r.likelihood_reason or 'n/a' }}{% if r.evidence_backed %} <span class="basis basis-sourced">Evidence-backed</span>{% endif %}</div>{% endif %}
+    <div class="fs-7 text-muted mb-2">{{ r.why_this_idea }} {{ source_chips(r.source_ids, (analyses.get('report', {}).get('data', {}) or {}).get('all_sources', [])) }}</div>
+    <div class="row g-3 fs-7">
+      <div class="col-md-6"><div class="fw-semibold mb-1"><i class="bi bi-list-check me-1 text-primary"></i>Mitigation steps</div>
+        <ol class="mb-0 ps-3">{% for m in r.mitigation_steps or [] %}<li>{{ m }}</li>{% endfor %}</ol></div>
+      <div class="col-md-6">
+        <div class="mb-2"><div class="fw-semibold"><i class="bi bi-wrench-adjustable me-1 text-success"></i>Realistic solution <span class="text-muted fw-normal">(effort: {{ r.effort or 'n/a' }})</span></div>{{ r.realistic_solution }}</div>
+        {% if r.early_warning_sign %}<div><div class="fw-semibold"><i class="bi bi-bell me-1 text-warning"></i>Early warning sign</div>{{ r.early_warning_sign }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}<div class="notice notice-warn"><i class="bi bi-info-circle"></i><div>No risks were returned for this idea.</div></div>{% endfor %}
+{% endif %}
+{% endif %}
+{% endblock %}

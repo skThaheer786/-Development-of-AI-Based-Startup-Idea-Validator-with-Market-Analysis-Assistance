@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, source_chips, agent_error, no_data, legacy_banner, meter, score_color %}
+
+{% block title %}Executive Report — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+{% set rd = report_data or {} %}
+{% set bd = rd.score_breakdown or {} %}
+{% set dims = bd.dimensions or {} %}
+{% set market = (analyses.get('market', {}).get('data', {}) or {}) %}
+{% set comp = (analyses.get('competitors', {}).get('data', {}) or {}) %}
+{% set sw = (analyses.get('swot_risk', {}).get('data', {}) or {}) %}
+{% set pipe = (analyses.get('pipeline', {}).get('data', {}) or {}) %}
+
+{{ legacy_banner(legacy_report, idea) }}
+
+{% if idea.status == 'failed' and not rd %}
+  <div class="notice notice-danger mb-4"><i class="bi bi-exclamation-octagon-fill"></i><div class="flex-grow-1">
+    <strong>The analysis could not be completed.</strong> {{ pipe._error or 'An unexpected error occurred.' }}
+    <div class="mt-2"><a href="{{ url_for('view_settings') }}" class="btn btn-sm btn-outline-danger me-1">Check API settings</a>
+    <button type="button" class="btn btn-sm btn-danger" onclick="rerunAnalysis({{ idea.id }}, this)"><i class="bi bi-arrow-repeat me-1"></i>Re-run analysis</button></div></div></div>
+{% elif not rd %}
+  {{ no_data(idea, 'The executive report') }}
+{% elif not legacy_report %}
+
+{# ---------- failed / partial sections ---------- #}
+{% set failed = [] %}
+{% for k, v in (rd.agent_status or {}).items() if v == 'failed' %}{% set _ = failed.append(k) %}{% endfor %}
+{% if failed %}
+<div class="notice notice-warn mb-4"><i class="bi bi-exclamation-triangle-fill"></i><div class="flex-grow-1">
+  <strong>Some sections could not be generated:</strong> {{ failed|join(', ') }}. Scores that depend on them are marked “n/a” and the overall score uses the dimensions that were available.
+  <div class="mt-2"><button type="button" class="btn btn-sm btn-warning" onclick="rerunAnalysis({{ idea.id }}, this)">Re-run analysis</button></div></div></div>
+{% endif %}
+
+<!-- Verdict -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card-custom h-100"><div class="card-custom-body">
+      <div class="d-flex flex-wrap align-items-center gap-4 mb-3">
+        <div class="text-center">
+          <div class="display-4 fw-extrabold {{ score_color(rd.viability_score) }}">{{ rd.viability_score }}</div>
+          <div class="text-muted fs-7">out of 100</div>
+        </div>
+        <div>
+          <span class="badge {% if rd.recommendation == 'PROCEED' %}bg-success{% elif rd.recommendation == 'IMPROVE' %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6 px-3 py-2 rounded-pill">{{ rd.recommendation|rec_label }}</span>
+          <div class="mt-2 fs-7">Research confidence:
+            <span class="badge {% if rd.confidence.level == 'High' %}bg-success{% elif rd.confidence.level == 'Medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ rd.confidence.level }}</span></div>
+          {% for r in rd.confidence.reasons or [] %}<div class="fs-8 text-muted">• {{ r }}</div>{% endfor %}
+        </div>
+      </div>
+      <h6 class="stat-label">Executive summary</h6>
+      {% for para in (rd.executive_summary or '').split('\n') if para.strip() %}<p class="mb-2">{{ para }}</p>{% endfor %}
+      {% if rd.go_no_go_verdict %}<div class="p-3 rounded mt-3" style="background:#f8fafc;border:1px solid #e2e8f0;"><strong>Verdict:</strong> {{ rd.go_no_go_verdict }}</div>{% endif %}
+    </div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card-custom h-100"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-radar me-2 text-primary"></i>Score profile</h6></div>
+      <div class="card-custom-body"><div style="height: 270px;"><canvas id="reportRadar"></canvas></div></div></div>
+  </div>
+</div>
+
+{% if rd.verdict_explanation %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-signpost-2 me-2 text-primary"></i>Why this verdict: {{ rd.recommendation|rec_label }}</h6></div>
+  <div class="card-custom-body">
+    <p class="mb-3">{{ rd.verdict_explanation }}</p>
+    {% if rd.main_score_reducers %}
+    <h6 class="stat-label">What is holding the score down</h6>
+    {% for r in rd.main_score_reducers %}
+      <div class="factor-row"><div class="fw-semibold">{{ r.factor_label }}<div class="fs-8 text-muted fw-normal">{{ r.dimension_label }}</div></div><div>{{ r.rating }}/5</div>
+        <div class="text-muted">{{ r.reason }} <span class="basis basis-sourced">+{{ r.points_if_raised_to_4 }} pts if raised to 4/5</span></div></div>
+    {% endfor %}
+    {% endif %}
+    <div class="row g-3 mt-2">
+      {% for title, items, tone in [('Main strengths', rd.key_strengths, 'success'), ('Main weaknesses', rd.key_weaknesses, 'danger')] %}
+      <div class="col-md-4"><div class="plan-col"><h6 class="text-{{ tone }}">{{ title }}</h6>
+        {% for i in items or [] %}<div class="fs-7 mb-2"><strong>{{ i.point }}</strong>{% if i.why %}<div class="text-muted fs-8">{{ i.why }}</div>{% endif %}</div>{% else %}<div class="text-muted fs-7">None listed.</div>{% endfor %}</div></div>
+      {% endfor %}
+      <div class="col-md-4"><div class="plan-col"><h6 class="text-warning-emphasis">Main risks</h6>
+        {% for r in rd.key_risks or [] %}<div class="fs-7 mb-2"><strong>{{ r.risk }}</strong> <span class="badge {% if r.severity == 'High' %}bg-danger{% elif r.severity == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ r.severity }}</span><div class="text-muted fs-8">Fix: {{ r.fix }}</div></div>{% else %}<div class="text-muted fs-7">None listed.</div>{% endfor %}</div></div>
+    </div>
+    {% if rd.disclaimer %}<div class="fs-8 text-muted mt-3"><i class="bi bi-info-circle me-1"></i>{{ rd.disclaimer }}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if rd.verdict_explanation %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-signpost-2 me-2 text-primary"></i>Why this verdict: {{ rd.recommendation|rec_label }}</h6></div>
+  <div class="card-custom-body">
+    <p class="mb-3">{{ rd.verdict_explanation }}</p>
+    {% if rd.main_score_reducers %}
+    <div class="fw-semibold fs-7 mb-2">What is holding the score down</div>
+    {% for f in rd.main_score_reducers %}
+      <div class="factor-row"><div class="fw-semibold">{{ f.factor_label }}<div class="fs-8 text-muted fw-normal">{{ f.dimension_label }}</div></div><div>{{ f.rating }}/5</div>
+        <div class="text-muted">{{ f.reason }} <span class="basis basis-sourced">+{{ f.points_if_raised_to_4 }} pts if raised to 4/5</span></div></div>
+    {% endfor %}{% endif %}
+    <div class="row g-3 mt-2">
+      <div class="col-lg-4"><div class="plan-col h-100"><h6 class="text-success"><i class="bi bi-hand-thumbs-up me-1"></i>Main strengths</h6>
+        {% for i in rd.key_strengths or [] %}<div class="fs-7 mb-2"><strong>{{ i.point }}</strong>{% if i.why %}<div class="text-muted">{{ i.why }}</div>{% endif %}</div>{% else %}<div class="text-muted fs-7">None recorded.</div>{% endfor %}</div></div>
+      <div class="col-lg-4"><div class="plan-col h-100"><h6 class="text-danger"><i class="bi bi-hand-thumbs-down me-1"></i>Main weaknesses</h6>
+        {% for i in rd.key_weaknesses or [] %}<div class="fs-7 mb-2"><strong>{{ i.point }}</strong>{% if i.why %}<div class="text-muted">{{ i.why }}</div>{% endif %}</div>{% else %}<div class="text-muted fs-7">None recorded.</div>{% endfor %}</div></div>
+      <div class="col-lg-4"><div class="plan-col h-100"><h6 class="text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1"></i>Top risks</h6>
+        {% for r in rd.key_risks or [] %}<div class="fs-7 mb-2"><strong>{{ r.risk }}</strong> <span class="badge bg-light text-dark border">{{ r.severity }}</span><div class="text-muted">Fix: {{ r.fix }}</div></div>{% else %}<div class="text-muted fs-7">None recorded.</div>{% endfor %}</div></div>
+    </div>
+    {% if rd.disclaimer %}<div class="notice notice-info mt-3 mb-0"><i class="bi bi-info-circle"></i><div class="fs-8">{{ rd.disclaimer }}</div></div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Key facts -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">TAM (AI-calculated)</div><div class="stat-value fs-3">{{ market.tam or 'Insufficient data' }}</div><div class="stat-sub">SAM {{ market.sam or 'Insufficient data' }} · SOM {{ market.som or 'Insufficient data' }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">CAGR</div><div class="stat-value fs-3">{{ market.cagr or 'Insufficient data' }}</div><div class="stat-sub">{% if market.cagr_info and market.cagr_info.status != 'unavailable' %}sourced{% else %}no source states it{% endif %}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Verified competitors</div><div class="stat-value fs-3">{{ comp.competitors|length if comp.competitors is defined else 'n/a' }}</div><div class="stat-sub">{{ comp.market_saturation or '' }} saturation</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Composite risk</div><div class="stat-value fs-3">{{ sw.overall_risk_score if sw.overall_risk_score is not none else 'n/a' }}</div><div class="stat-sub">{{ sw.risk_rating }}</div></div></div>
+</div>
+
+<!-- Highlights -->
+<div class="row g-3 mb-4">
+  {% for label, key, icon, tone in [('Biggest strength','biggest_strength','bi-trophy','success'),('Biggest weakness','biggest_weakness','bi-exclamation-diamond','danger'),('Best opportunity','best_market_opportunity','bi-bullseye','primary'),('Do this next','recommended_next_action','bi-arrow-right-circle','info')] %}
+  {% if rd.get(key) %}<div class="col-md-6"><div class="plan-col"><h6 class="text-{{ tone }}"><i class="bi {{ icon }} me-1"></i>{{ label }}</h6><div class="fs-7">{{ rd.get(key) }}</div></div></div>{% endif %}
+  {% endfor %}
+</div>
+
+<!-- Score breakdown -->
+<div class="card-custom mb-4">
+  <div class="card-custom-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h6 class="mb-0"><i class="bi bi-clipboard-data me-2 text-primary"></i>Why each score was given</h6>
+    <span class="fs-8 text-muted">Ratings come with reasons; the arithmetic is computed, not guessed.</span>
+  </div>
+  <div class="card-custom-body">
+    <div class="row g-4">
+    {% for key, d in dims.items() %}
+      <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-baseline">
+          <h6 class="mb-1">{{ d.label }} <span class="text-muted fs-8 fw-normal">· weight {{ (d.weight * 100)|int }}%</span></h6>
+          <span class="fw-extrabold fs-5 {{ score_color(d.score) }}">{{ d.score if d.score is not none else 'n/a' }}{% if d.score is not none %}<span class="fs-8 text-muted">/100</span>{% endif %}</span>
+        </div>
+        {{ meter(d.score) }}
+        <div class="fs-7 text-muted mt-2">{{ d.explanation }}</div>
+        {% if d.factors %}
+        <details class="mt-2"><summary class="fs-8 text-primary" style="cursor:pointer;">See factor ratings</summary>
+          <div class="mt-2">
+          {% for f in d.factors %}
+            <div class="factor-row"><div class="fw-semibold">{{ f.label }}</div><div>{{ f.rating }}/5</div>
+              <div class="text-muted">{{ f.reason }} {% if f.source == 'computed' %}<span class="basis basis-sourced">Computed</span>{% else %}<span class="basis basis-ai">AI rating</span>{% endif %}</div></div>
+          {% endfor %}</div>
+        </details>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+    <div class="fs-8 text-muted mt-3">{{ rd.scoring_rules }}</div>
+  </div>
+</div>
+
+<!-- Explore -->
+<div class="row g-3 mb-4">
+  {% for ep, label, icon in [('view_market','Market & sizing','bi-pie-chart'),('view_competitors','Competitor matrix','bi-binoculars'),('view_swot','SWOT','bi-shield-shaded'),('view_risks','Risk playbook','bi-exclamation-octagon'),('view_mvp','MVP scope','bi-layers'),('view_gtm','Go-to-market & 30/60/90','bi-graph-up-arrow')] %}
+  <div class="col-6 col-md-4 col-xl-2"><a class="plan-col d-block text-decoration-none text-center" href="{{ url_for(ep, idea_id=idea.id) }}"><i class="bi {{ icon }} fs-3 text-primary"></i><div class="fs-7 fw-semibold text-navy mt-1">{{ label }}</div></a></div>
+  {% endfor %}
+</div>
+
+<!-- Research quality -->
+{% set ss = rd.search_summary or {} %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-search me-2 text-primary"></i>How this report was researched</h6></div>
+  <div class="card-custom-body fs-7">
+    <div class="row g-3">
+      <div class="col-md-4"><strong>{{ (rd.all_sources or [])|length }}</strong> web sources retrieved</div>
+      <div class="col-md-4"><strong>{{ ss.with_results or 0 }}/{{ ss.queries or 0 }}</strong> searches returned results {% if ss.providers_used %}({{ ss.providers_used|join(', ') }}){% endif %}</div>
+      <div class="col-md-4">Model: <strong>{{ (analyses.get('report', {}).get('data', {}) or {}).get('_meta', {}).get('source', '') }}</strong></div>
+    </div>
+    {% set warns = [] %}
+    {% for k, v in analyses.items() %}{% for w in ((v.data or {}).get('_meta', {}) or {}).get('warnings', []) %}{% set _ = warns.append(k ~ ': ' ~ w) %}{% endfor %}{% endfor %}
+    {% if warns %}<div class="mt-2">{% for w in warns %}<div class="text-warning-emphasis"><i class="bi bi-exclamation-triangle me-1"></i>{{ w }}</div>{% endfor %}</div>{% endif %}
+    <details class="mt-3"><summary class="text-primary" style="cursor:pointer;">Sources ({{ (rd.all_sources or [])|length }})</summary>
+      <ul class="list-unstyled source-list mt-2 mb-0">{% for s in rd.all_sources or [] %}
+        <li><span class="source-chip">{{ s.id }}</span> <a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.title }}</a> <span class="text-muted fs-8">— {{ s.source_label }} · {{ s.domain }}</span></li>{% endfor %}</ul></details>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% set dd = (report_data or {}).get('score_breakdown', {}).get('dimensions', {}) if report_data else {} %}
+{% if dd %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const el = document.getElementById("reportRadar"); if (!el) return;
+  const labels = {{ dd.values()|map(attribute='label')|list|tojson }};
+  const data = {{ dd.values()|map(attribute='score')|list|tojson }};
+  new Chart(el, { type: "radar",
+    data: { labels, datasets: [{ data: data.map(v => v === null ? 0 : v), backgroundColor: "rgba(37,99,235,.18)", borderColor: "#2563eb", pointBackgroundColor: "#2563eb", borderWidth: 2 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, backdropColor: "transparent" }, pointLabels: { font: { size: 10 } } } } }
+  });
+});
+</script>
+{% endif %}
+{% endblock %}
