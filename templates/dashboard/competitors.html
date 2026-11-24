@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, source_chips, agent_error, no_data %}
+
+{% block title %}Competitor Analysis — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+{% set sources = comp_data.research_sources or [] %}
+
+{% if not comp_data %}
+  {{ no_data(idea, 'Competitor analysis') }}
+{% else %}
+{{ agent_error(comp_data, idea) }}
+{% if not comp_data._error %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Verified competitors</div><div class="stat-value">{{ competitors|length }}</div>
+    <div class="stat-sub">official website opened &amp; confirmed</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Market saturation</div><div class="stat-value">{{ comp_data.market_saturation or 'Unknown' }}</div>
+    <div class="stat-sub">{{ basis('ai_analysis') }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Prices found</div><div class="stat-value">{{ comp_data.price_anchors|length }}</div>
+    <div class="stat-sub">on competitor websites</div></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><div class="stat-label">Whitespace found</div><div class="stat-value">{{ comp_data.opportunities|length }}</div>
+    <div class="stat-sub">differentiation opportunities</div></div></div>
+</div>
+
+<div class="notice notice-info mb-4"><i class="bi bi-shield-check"></i><div>
+  Only companies whose <strong>official website was fetched and confirmed</strong> are listed. Products, features and prices are read from those pages; a price shown as “not publicly listed” means none was found. “Gap vs your idea” is <span class="basis basis-ai">AI analysis</span>.
+  {% if comp_data.saturation_reason %}<div class="mt-1">{{ comp_data.saturation_reason }}</div>{% endif %}
+</div></div>
+
+{% if competitors %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-table me-2 text-primary"></i>Competitor comparison</h6></div>
+  <div class="card-custom-body p-0">
+    <div class="table-responsive">
+    <table class="table table-compare table-stack mb-0">
+      <thead><tr><th>Company</th><th>Type</th><th>Products</th><th>Key features</th><th>Pricing</th><th>Target customers</th><th>Strengths <span class="basis basis-sourced">from site</span></th><th>Weaknesses <span class="basis basis-ai">AI</span></th><th>Gap vs your idea</th></tr></thead>
+      <tbody>
+      {% for c in competitors %}
+        <tr>
+          <td data-label="Company"><strong>{{ c.name }}</strong><br>
+            <a href="{{ c.website_url }}" target="_blank" rel="noopener" class="fs-8"><i class="bi bi-box-arrow-up-right me-1"></i>{{ c.website_url|replace('https://','')|replace('http://','')|trim('/') }}</a>
+            <div>{{ basis('sourced') }}</div></td>
+          <td data-label="Type"><span class="badge {% if c.competitor_type == 'Direct' %}bg-danger-subtle text-danger{% elif c.competitor_type == 'Emerging' %}bg-info-subtle text-info{% else %}bg-secondary-subtle text-secondary{% endif %} border">{{ c.competitor_type }}</span></td>
+          <td data-label="Products">{% for p in c.products or [] %}<div>{{ p }}</div>{% else %}<span class="text-muted">Not stated on site</span>{% endfor %}</td>
+          <td data-label="Key features">{% for f in (c.key_features or [])[:5] %}<div>• {{ f }}</div>{% else %}<span class="text-muted">Not stated on site</span>{% endfor %}</td>
+          <td data-label="Pricing">{{ c.pricing_model or c.pricing_text }}
+            {% if c.pricing and c.pricing.source_url %}<div><a class="fs-8" href="{{ c.pricing.source_url }}" target="_blank" rel="noopener">pricing source</a></div>{% endif %}</td>
+          <td data-label="Target customers">{{ c.target_customers or '—' }}</td>
+          <td data-label="Strengths">{% for x in c.site_strengths or [] %}<div>• {{ x }}</div>{% else %}<span class="text-muted">Not stated on site</span>{% endfor %}</td>
+          <td data-label="Weaknesses">{% for x in c.ai_weaknesses or [] %}<div>• {{ x }}</div>{% else %}<span class="text-muted">—</span>{% endfor %}</td>
+          <td data-label="Gap vs your idea">{{ c.weaknesses or c.gaps_vs_idea or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+{% if comp_data.comparison_features %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Capability comparison</h6></div>
+  <div class="card-custom-body p-0">
+    <div class="table-responsive">
+    <table class="table table-compare mb-0">
+      <thead><tr><th>Capability</th><th>Your idea</th>{% for c in competitors %}<th>{{ c.name }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for row in comp_data.comparison_features %}
+        <tr><td>{{ row.capability }}</td>
+          <td>{% if row.idea_offers %}<span class="cell-yes"><i class="bi bi-check-circle-fill"></i> Planned</span>{% else %}<span class="cell-unclear">—</span>{% endif %}</td>
+          {% for c in competitors %}{% set v = row.competitors.get(c.name, 'unclear') %}
+          <td>{% if v == 'yes' %}<span class="cell-yes"><i class="bi bi-check-circle-fill"></i> Yes</span>{% elif v == 'no' %}<span class="cell-no"><i class="bi bi-x-circle-fill"></i> No</span>{% else %}<span class="cell-unclear">? Unclear</span>{% endif %}</td>{% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <div class="px-3 py-2 fs-8 text-muted">“Yes/No” is read from the competitor's own website text only; “Unclear” means their pages do not say.</div>
+  </div>
+</div>
+{% endif %}
+
+{% if comp_data.gap_analysis %}
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-search-heart me-2 text-primary"></i>Market gaps (computed from competitor websites)</h6></div>
+  <div class="card-custom-body">
+    {% if comp_data.type_counts %}<div class="fs-7 mb-3">Competitor mix: <strong>{{ comp_data.type_counts.get('Direct', 0) }}</strong> direct · <strong>{{ comp_data.type_counts.get('Indirect', 0) }}</strong> indirect · <strong>{{ comp_data.type_counts.get('Emerging', 0) }}</strong> emerging <span class="text-muted">(type is an AI classification)</span></div>{% endif %}
+    {% for g in comp_data.gap_analysis %}
+    <div class="insight-item d-flex justify-content-between align-items-start gap-2">
+      <div><span class="insight-title">{{ g.capability }}</span>
+        <div class="fs-8 text-muted">{% if g.offered_by %}Stated by: {{ g.offered_by|join(', ') }}{% else %}No verified competitor states this{% endif %}{% if g.unclear %} · pages silent: {{ g.unclear|join(', ') }}{% endif %}</div></div>
+      <span class="badge {% if g.status == 'open' %}bg-success{% elif g.status == 'partial' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ {'open': 'Open gap', 'partial': 'Partial gap', 'crowded': 'Crowded'}[g.status] }}</span>
+    </div>
+    {% endfor %}
+    <div class="fs-8 text-muted mt-2">“Open gap” means competitor websites do not state the capability. Confirm with customer interviews before relying on it.</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  {% for c in competitors %}
+  <div class="col-lg-6"><div class="card-custom h-100">
+    <div class="card-custom-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">{{ c.name }}</h6>
+      <span class="badge {% if c.threat_level == 'High' %}bg-danger{% elif c.threat_level == 'Low' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ c.threat_level or 'Medium' }} threat</span>
+    </div>
+    <div class="card-custom-body fs-7">
+      <p class="mb-2">{{ c.positioning }}</p>
+      <div class="mb-1"><strong>Overlap with your idea:</strong> {{ c.overlap_with_idea }}</div>
+      <div class="mb-1"><strong>How you can differ:</strong> {{ c.differentiation_opportunity or c.market_gap }}</div>
+      {% if c.threat_reason %}<div class="text-muted">{{ c.threat_reason }}</div>{% endif %}
+    </div>
+  </div></div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="notice notice-warn mb-4"><i class="bi bi-binoculars"></i><div><strong>No competitor could be verified.</strong> {{ comp_data.note or comp_data.unavailable_reason or '' }}
+  <div class="mt-2"><button type="button" class="btn btn-sm btn-warning" onclick="rerunAnalysis({{ idea.id }}, this)">Re-run analysis</button></div></div></div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-7"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-bullseye me-2 text-primary"></i>Where your idea can be different</h6></div>
+    <div class="card-custom-body">
+      {% for o in comp_data.opportunities or [] %}
+      <div class="insight-item"><div class="insight-title">{{ o.opportunity }} {{ basis('ai_analysis') }}</div>
+        <div class="fs-7 text-muted">{{ o.why }}</div>
+        {% if o.competitors_lacking %}<div class="fs-8 mt-1">Not evident on: {{ o.competitors_lacking|join(', ') }}</div>{% endif %}</div>
+      {% else %}<div class="text-muted fs-7">No whitespace identified.</div>{% endfor %}
+      {% if comp_data.positioning_recommendation %}<div class="mt-3 p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;"><strong>Positioning:</strong> {{ comp_data.positioning_recommendation }}</div>{% endif %}
+    </div></div></div>
+  <div class="col-lg-5"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Alternatives &amp; unverified names</h6></div>
+    <div class="card-custom-body fs-7">
+      <div class="fw-semibold mb-1">What customers use today {{ basis('ai_analysis') }}</div>
+      <ul>{% for a in comp_data.status_quo_alternatives or [] %}<li>{{ a }}</li>{% else %}<li class="text-muted">None listed.</li>{% endfor %}</ul>
+      {% if comp_data.unverified_mentions %}
+      <div class="fw-semibold mb-1">Mentioned but not verified (excluded)</div>
+      <div class="text-muted">{% for u in comp_data.unverified_mentions %}{{ u.name }}{% if not loop.last %}, {% endif %}{% endfor %} — no working official website could be confirmed.</div>
+      {% endif %}
+    </div></div></div>
+</div>
+
+<div class="card-custom mb-4">
+  <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-link-45deg me-2 text-primary"></i>Sources consulted</h6></div>
+  <div class="card-custom-body"><ul class="list-unstyled source-list mb-0">
+    {% for s in sources %}<li><span class="source-chip">{{ s.id }}</span> <a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.title }}</a> <span class="text-muted fs-8">— {{ s.domain }}</span></li>
+    {% else %}<li class="text-muted">No web sources were retrieved.</li>{% endfor %}
+  </ul></div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

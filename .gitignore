@@ -1,5 +1,50 @@
-.env
-__pycache__/
-*.pyc
-.venv/
+# ==============================================================================
+# Startup Idea Validator AI - Git Ignore
+# ==============================================================================
+
+# 1. Python Virtual Environment
 venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# 2. Environment Variables & Secrets (Keep .env.example tracked)
+.env
+.env.local
+*.env
+
+# 3. Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# 4. Local Database & SQLite files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+startup_validator.db
+
+# 5. Backups & Logs
+backups/
+*.log
+
+# 6. Generated Report Exports (Keep directory structure with .gitkeep)
+exports/*.pdf
+exports/*.csv
+exports/*.json
+exports/*.md
+!exports/.gitkeep
+
+# 7. IDE & Operating System Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 8. Ignore nested empty repository attempt
+startup-idea-validator/

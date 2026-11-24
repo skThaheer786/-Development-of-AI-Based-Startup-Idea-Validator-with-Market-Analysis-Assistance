@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, source_chips, agent_error, no_data %}
+
+{% block title %}Go-To-Market Strategy — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+{% set sources = (analyses.get('report', {}).get('data', {}) or {}).get('all_sources', []) or gtm.research_sources or [] %}
+
+{% if not gtm %}
+  {{ no_data(idea, 'Go-to-market plan') }}
+{% else %}
+{{ agent_error(gtm, idea) }}
+{% if not gtm._error %}
+{% set fc = gtm.first_customers or {} %}
+{% set ps = gtm.pricing_strategy or {} %}
+{% set t = gtm.year_one_targets or {} %}
+
+<div class="card-custom mb-4"><div class="card-custom-body">
+  <div class="stat-label mb-1">Positioning</div>
+  <div class="fs-5 fw-semibold">“{{ gtm.positioning_statement }}”</div>
+</div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-6"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-cash-coin me-2 text-primary"></i>Revenue models</h6></div>
+    <div class="card-custom-body">
+      {% for m in gtm.revenue_models or [] %}
+      <div class="insight-item">
+        <div class="d-flex justify-content-between gap-2"><span class="insight-title">{{ m.model }}</span>
+          {% if m.model == gtm.recommended_revenue_model %}<span class="badge bg-success">Recommended</span>{% endif %}</div>
+        <div class="fs-7">{{ m.fit_reason }}</div>
+        <div class="fs-8 text-muted">Example: {{ m.example_price }} · Trade-off: {{ m.tradeoff }}</div>
+      </div>{% else %}<div class="text-muted fs-7">None.</div>{% endfor %}
+    </div></div></div>
+  <div class="col-lg-6"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-tags me-2 text-primary"></i>Suggested pricing</h6></div>
+    <div class="card-custom-body">
+      <div class="fs-7 text-muted mb-2">{{ ps.rationale }}</div>
+      {% if ps.assumptions %}<div class="fs-8 mb-2"><strong>Assumptions behind these prices:</strong><ul class="mb-0 ps-3">{% for x in ps.assumptions %}<li>{{ x }}</li>{% endfor %}</ul></div>{% endif %}
+      <div class="table-responsive"><table class="table table-sm table-compare table-stack">
+        <thead><tr><th>Tier</th><th>Price</th><th>For</th><th>Basis</th></tr></thead>
+        <tbody>{% for tier in ps.tiers or [] %}<tr><td data-label="Tier"><strong>{{ tier.name }}</strong></td><td data-label="Price">{{ tier.price }}</td><td data-label="For">{{ tier.who_its_for }}</td>
+          <td data-label="Basis">{% if tier.basis == 'competitor_anchor' %}{{ basis('competitor_data') }}{% else %}<span class="basis basis-warn">AI suggestion · test it</span>{% endif %}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if gtm.price_anchors %}
+      <div class="fs-7 mt-2"><strong>Competitor prices actually found:</strong>
+        {% for a in gtm.price_anchors %}<div>{{ a.competitor }}: {{ a.prices[:3]|join(', ') }} {% if a.url %}<a class="fs-8" href="{{ a.url }}" target="_blank" rel="noopener">source</a>{% endif %}</div>{% endfor %}</div>
+      {% else %}<div class="fs-8 text-muted mt-2">No competitor prices were found online, so these prices are untested suggestions.</div>{% endif %}
+    </div></div></div>
+</div>
+
+{% set ms = gtm.marketing_strategy or {} %}
+{% if ms.core_message or ms.channels %}
+<div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-megaphone me-2 text-primary"></i>Marketing &amp; customer-acquisition strategy</h6></div>
+  <div class="card-custom-body"><div class="row g-4">
+    <div class="col-lg-5"><div class="fs-7"><strong>Core message:</strong> {{ ms.core_message }}</div>
+      {% if ms.competitor_positioning %}<div class="fs-7 mt-2"><strong>Versus competitors:</strong> {{ ms.competitor_positioning }}</div>{% endif %}
+      {% if ms.content_ideas %}<div class="fs-7 mt-2"><strong>Content / demo ideas:</strong><ul class="mb-0 ps-3">{% for c in ms.content_ideas %}<li>{{ c }}</li>{% endfor %}</ul></div>{% endif %}</div>
+    <div class="col-lg-7">{% for c in ms.channels %}<div class="insight-item"><span class="insight-title">{{ c.channel }}</span><div class="fs-7">{{ c.tactic }}</div><div class="fs-8 text-muted">{{ c.budget_note }}</div></div>{% endfor %}</div>
+  </div></div></div>
+{% endif %}
+
+{% if t and t.target_revenue %}
+<div class="notice notice-info mb-4"><i class="bi bi-bullseye"></i><div><strong>Year-one target:</strong> {{ t.formula }} = <strong>{{ t.currency }}{{ '{:,.0f}'.format(t.target_revenue) }}</strong>. {{ t.reasoning }} {{ basis('ai_assumption') }}</div></div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-7"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-person-check me-2 text-primary"></i>How to find your first customers</h6></div>
+    <div class="card-custom-body">
+      {% if fc.ideal_customer_profile %}<div class="fs-7 mb-3"><strong>Ideal customer:</strong> {{ fc.ideal_customer_profile }}</div>{% endif %}
+      {% for w in fc.where_to_find or [] %}
+      <div class="insight-item"><div class="insight-title">{{ w.channel }}</div>
+        <div class="fs-7">{{ w.specific_action or w.action }}</div><div class="fs-8 text-muted">{{ w.why_it_fits }}</div>
+        <div>{{ source_chips(w.source_ids, sources) }}</div></div>
+      {% else %}<div class="text-muted fs-7">None.</div>{% endfor %}
+      {% if fc.first_10_customers_plan %}<div class="fs-7 mt-3"><strong>First 10 customers:</strong> {{ fc.first_10_customers_plan }}</div>{% endif %}
+    </div></div></div>
+  <div class="col-lg-5">
+    {% if fc.outreach_message %}<div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-envelope me-2 text-primary"></i>Sample outreach message</h6></div>
+      <div class="card-custom-body fs-7" style="white-space: pre-line;">{{ fc.outreach_message }}</div></div>{% endif %}
+    {% if fc.discovery_questions %}<div class="card-custom"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-question-circle me-2 text-primary"></i>Customer-interview questions</h6></div>
+      <div class="card-custom-body"><ol class="fs-7 mb-0 ps-3">{% for q in fc.discovery_questions %}<li>{{ q }}</li>{% endfor %}</ol></div></div>{% endif %}
+  </div>
+</div>
+
+<h5 class="mb-3">30 / 60 / 90-day action plan</h5>
+<div class="row g-3 mb-4">
+  {% for ph in gtm.launch_roadmap_90_days or [] %}
+  <div class="col-lg-4"><div class="plan-col">
+    <h6>{{ ph.phase }}</h6><div class="fs-7 fw-semibold mb-2">{{ ph.goal }}</div>
+    <ul class="fs-7 ps-3 mb-0">{% for a in ph.actions or [] %}<li class="mb-1">{{ a }}</li>{% endfor %}</ul>
+    <div class="metric"><i class="bi bi-graph-up me-1"></i>Success: {{ ph.success_metric }}</div>
+  </div></div>
+  {% else %}<div class="col-12 text-muted">No plan returned.</div>{% endfor %}
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
