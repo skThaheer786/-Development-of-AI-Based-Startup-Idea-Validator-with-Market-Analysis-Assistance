@@ -48,3 +48,7 @@ desktop.ini
 
 # 8. Ignore nested empty repository attempt
 startup-idea-validator/
+.venv/
+venv/
+__pycache__/
+*.py[cod]

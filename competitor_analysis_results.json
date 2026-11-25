@@ -1,0 +1,151 @@
+{
+    "startup_idea": "AI-based crop disease detection",
+    "industry": "Agriculture",
+    "target_customers": "farners",
+    "competitors": [
+        {
+            "name": "Plantix (PEAT GmbH)",
+            "website": "https://dataintelo.com/report/ai-based-crop-disease-detection-market",
+            "product": "Mobile disease diagnostic and monitoring tool that uses AI image recognition to identify plant diseases and pests.",
+            "target_customers": "Farmers (global user base)",
+            "features": [
+                "AI image recognition",
+                "Disease and pest monitoring",
+                "Digital advisory services"
+            ],
+            "pricing": "Not found",
+            "strengths": [
+                "Over 10 million global users (largest farmer user base)",
+                "Established brand in agri‑AI"
+            ],
+            "limitations": [
+                "Not found"
+            ],
+            "source_urls": [
+                "https://dataintelo.com/report/ai-based-crop-disease-detection-market"
+            ]
+        },
+        {
+            "name": "Taranis",
+            "website": "https://dataintelo.com/report/ai-based-crop-disease-detection-market",
+            "product": "AI-powered image‑based diagnostics platform for early disease detection and precision scouting.",
+            "target_customers": "Farmers and large agribusinesses",
+            "features": [
+                "High‑resolution aerial imaging",
+                "AI disease identification",
+                "Scouting reports"
+            ],
+            "pricing": "Not found",
+            "strengths": [
+                "Secured $40 million Series C funding (Sept 2025) for international expansion",
+                "Strong technical capabilities"
+            ],
+            "limitations": [
+                "Not found"
+            ],
+            "source_urls": [
+                "https://dataintelo.com/report/ai-based-crop-disease-detection-market"
+            ]
+        },
+        {
+            "name": "AgroScout",
+            "website": "https://flypix.ai/crop-disease-detection-companies",
+            "product": "Remote agronomy platform that uses drone imagery and AI to detect pests and diseases with GPS‑tagged reports.",
+            "target_customers": "Growers and commercial farms",
+            "features": [
+                "Drone‑captured high‑resolution images",
+                "AI disease & pest detection",
+                "Actionable GPS‑located insights"
+            ],
+            "pricing": "Not found",
+            "strengths": [
+                "Enables early detection, reduces chemical use",
+                "Provides precise field‑level recommendations"
+            ],
+            "limitations": [
+                "Not found"
+            ],
+            "source_urls": [
+                "https://flypix.ai/crop-disease-detection-companies"
+            ]
+        },
+        {
+            "name": "John Deere (Operations Center)",
+            "website": "https://dataintelo.com/report/ai-based-crop-disease-detection-market",
+            "product": "Integrated AI disease detection capability within the Operations Center farm management platform, linked to field sensors and machinery telematics.",
+            "target_customers": "Farmers using John Deere equipment",
+            "features": [
+                "AI disease detection",
+                "Tight integration with sensors, telematics, and equipment",
+                "Bundled value proposition for existing customers"
+            ],
+            "pricing": "Not found",
+            "strengths": [
+                "Leverages dominant precision‑ag hardware base",
+                "Strong ecosystem of equipment and data"
+            ],
+            "limitations": [
+                "May be limited to John Deere equipment owners",
+                "Not found"
+            ],
+            "source_urls": [
+                "https://dataintelo.com/report/ai-based-crop-disease-detection-market"
+            ]
+        },
+        {
+            "name": "BASF (xarvio platform)",
+            "website": "https://dataintelo.com/report/ai-based-crop-disease-detection-market",
+            "product": "AI disease identification combined with digital agronomy advisory services via the xarvio Scouting and xarvio Field Manager platforms.",
+            "target_customers": "European and Latin American farmers",
+            "features": [
+                "AI disease identification",
+                "Digital agronomy advisory",
+                "Field scouting tools"
+            ],
+            "pricing": "Not found",
+            "strengths": [
+                "Backed by large agro‑chemical company",
+                "Focus on European & Latin American markets"
+            ],
+            "limitations": [
+                "Not found"
+            ],
+            "source_urls": [
+                "https://dataintelo.com/report/ai-based-crop-disease-detection-market"
+            ]
+        }
+    ],
+    "market_gaps": [
+        {
+            "gap": "Affordable, offline‑first solution for smallholder farmers with limited internet connectivity",
+            "evidence": "Most cited competitors (John Deere, BASF, EOSDA) rely on cloud platforms or equipment integration, which may be inaccessible to low‑resource farms.",
+            "confidence": "high"
+        },
+        {
+            "gap": "Multi‑crop, region‑specific disease libraries for emerging markets (e.g., South Asia, Sub‑Saharan Africa)",
+            "evidence": "Evidence highlights focus on European, Latin American, and major commodity crops; limited mention of localized disease models for smaller or region‑specific crops.",
+            "confidence": "medium"
+        },
+        {
+            "gap": "Integrated low‑cost IoT sensor data combined with image AI for early detection before visual symptoms appear",
+            "evidence": "Research notes integration of field sensors and telematics (John Deere) but does not describe low‑cost sensor bundles for small farms.",
+            "confidence": "medium"
+        },
+        {
+            "gap": "Transparent, subscription‑based pricing suitable for small farms",
+            "evidence": "Pricing information was not found for any competitor, indicating a lack of publicly disclosed affordable pricing models.",
+            "confidence": "low"
+        }
+    ],
+    "differentiation_recommendations": [
+        "Develop a lightweight mobile app that works offline and syncs when connectivity is available, targeting smallholder farmers.",
+        "Build a modular disease library that can be customized for regional crops and languages, partnering with local agricultural institutes.",
+        "Offer a tiered subscription model with a free basic tier and affordable premium features, clearly publishing pricing.",
+        "Integrate low‑cost IoT sensors (e.g., soil moisture, micro‑climate) to provide early warnings before visual symptoms, differentiating from image‑only solutions."
+    ],
+    "research_limitations": [
+        "No publicly available pricing data for the listed competitors.",
+        "Limited detail on specific limitations or user‑experience drawbacks of each competitor.",
+        "The search results do not provide comprehensive coverage of all global agri‑AI players."
+    ]
+}
