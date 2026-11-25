@@ -419,4 +419,4 @@ startup-idea-validator-ai/
 - SQLite suits a local prototype; production use would need a managed database, backups and stronger secret management.
 
 ## License
-This project was developed for academic purposes. Add a `LICENSE` file (for example MIT) to state the terms for reuse before publishing the repository.
+This project is licensed under the MIT License. See the "LICENSE" (LICENSE) file for details.
