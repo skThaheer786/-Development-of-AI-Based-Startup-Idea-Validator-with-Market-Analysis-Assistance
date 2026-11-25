@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import basis, agent_error, no_data %}
+
+{% block title %}MVP Scope — {{ idea.title }}{% endblock %}
+
+{% block content %}
+{% include 'partials/idea_header.html' %}
+
+{% if not mvp %}
+  {{ no_data(idea, 'MVP plan') }}
+{% else %}
+{{ agent_error(mvp, idea) }}
+{% if not mvp._error %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="stat-card"><div class="stat-label">Estimated time to MVP</div><div class="stat-value">{{ mvp.estimated_mvp_weeks ~ ' weeks' if mvp.estimated_mvp_weeks else 'n/a' }}</div><div class="stat-sub">{{ mvp.team_assumption }}</div></div></div>
+  <div class="col-md-8"><div class="stat-card"><div class="stat-label">Riskiest assumption to test first</div><div class="fs-6 fw-semibold mt-1">{{ mvp.riskiest_assumption or 'n/a' }}</div></div></div>
+</div>
+
+{% set tc = mvp.timeline_check or {} %}
+{% if tc.note %}<div class="notice {% if tc.status == 'ok' %}notice-info{% elif tc.status == 'unknown' %}notice-info{% else %}notice-warn{% endif %} mb-4"><i class="bi bi-clock-history"></i><div><strong>Timeline check:</strong> {{ tc.note }}{% if tc.status in ('tight','unrealistic') %} The longer estimate is used above.{% endif %}</div></div>{% endif %}
+
+{% if mvp.build_order %}
+<div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-1-circle me-2 text-primary"></i>What to build first</h6></div>
+  <div class="card-custom-body">{% for b in mvp.build_order %}<div class="insight-item"><span class="insight-title">{{ loop.index }}. {{ b.what }}</span><div class="fs-7 text-muted">{{ b.why_first }}</div></div>{% endfor %}</div></div>
+{% endif %}
+
+{% set ce = mvp.cost_estimate or {} %}
+<div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-cash-stack me-2 text-primary"></i>Development cost estimate <span class="basis basis-ai">AI estimate</span></h6></div>
+  <div class="card-custom-body">
+  {% if ce.status == 'ok' %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-4"><div class="stat-card"><div class="stat-label">Cash needed</div><div class="stat-value fs-4">{{ ce.cash_total.text }}</div><div class="stat-sub">money actually spent</div></div></div>
+      <div class="col-md-4"><div class="stat-card"><div class="stat-label">Own time (valued)</div><div class="stat-value fs-4">{{ ce.own_time_total.text }}</div><div class="stat-sub">unpaid founder / student hours</div></div></div>
+      <div class="col-md-4"><div class="stat-card"><div class="stat-label">Running cost / month</div><div class="stat-value fs-4">{% if ce.monthly_running %}{{ ce.monthly_running.low_text }} – {{ ce.monthly_running.high_text }}{% else %}Insufficient data{% endif %}</div><div class="stat-sub">{{ ce.monthly_running.note if ce.monthly_running }}</div></div></div>
+    </div>
+    <div class="table-responsive"><table class="table table-sm table-compare table-stack mb-3">
+      <thead><tr><th>Item</th><th>Type</th><th>Low – High</th><th>Covers</th></tr></thead>
+      <tbody>{% for it in ce['items'] %}<tr><td data-label="Item">{{ it.category }}</td><td data-label="Type">{{ 'Cash' if it.type == 'cash' else 'Own time' }}</td><td data-label="Low – High">{{ it.low_text }} – {{ it.high_text }}</td><td data-label="Covers">{{ it.note }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+    <div class="fs-7"><strong>Assumptions:</strong><ul class="mb-1 ps-3">{% for a in ce.assumptions %}<li>{{ a }}</li>{% endfor %}</ul></div>
+    <div class="fs-8 text-muted">{{ ce.label }}. Totals are summed by the application from the listed lines.</div>
+  {% else %}
+    <div class="text-muted fs-7"><i class="bi bi-info-circle me-1"></i>{{ ce.reason or 'Insufficient data for a cost estimate.' }}</div>
+  {% endif %}
+  </div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6"><div class="card-custom h-100"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-tools me-2 text-primary"></i>Required resources</h6></div>
+    <div class="card-custom-body"><ul class="fs-7 mb-0 ps-3">{% for r in mvp.required_resources or [] %}<li>{{ r }}</li>{% else %}<li class="text-muted">None listed.</li>{% endfor %}</ul></div></div></div>
+  <div class="col-md-6"><div class="card-custom h-100"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-bug me-2 text-primary"></i>How to test it</h6></div>
+    <div class="card-custom-body"><ul class="fs-7 mb-0 ps-3">{% for r in mvp.testing_methods or [] %}<li>{{ r }}</li>{% else %}<li class="text-muted">None listed.</li>{% endfor %}</ul></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  {% for key, title, tone, icon in [('must_have','Must have (MVP)','success','bi-check2-circle'),('should_have','Should have','primary','bi-plus-circle'),('could_have','Could have','secondary','bi-dash-circle')] %}
+  <div class="col-lg-4"><div class="card-custom h-100" style="border-top:4px solid var(--bs-{{ tone }});">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi {{ icon }} me-2 text-{{ tone }}"></i>{{ title }}</h6></div>
+    <div class="card-custom-body">
+      {% for f in mvp.get(key, []) %}
+      <div class="insight-item">
+        <div class="insight-title">{{ f | item_text('feature') }}</div>
+        {% if f is mapping %}<div class="fs-7 text-muted">{{ f.why }}</div>
+        {% if f.impact or f.effort %}<div class="fs-8 mt-1"><span class="badge bg-light text-dark border">Impact: {{ f.impact }}</span> <span class="badge bg-light text-dark border">Effort: {{ f.effort }}</span> {% if f.quadrant %}<span class="badge bg-info-subtle text-info border">{{ f.quadrant }}</span>{% endif %}</div>{% endif %}{% endif %}
+      </div>
+      {% else %}<div class="text-muted fs-7">None.</div>{% endfor %}
+    </div></div></div>
+  {% endfor %}
+</div>
+
+{% if mvp.wont_have_yet %}
+<div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-slash-circle me-2 text-danger"></i>Deliberately left out for now</h6></div>
+  <div class="card-custom-body"><div class="row g-2">{% for f in mvp.wont_have_yet %}
+    <div class="col-md-4"><div class="fs-7"><strong>{{ f | item_text('feature') }}</strong><div class="text-muted">{{ f.reason if f is mapping }}</div></div></div>{% endfor %}</div></div></div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-7"><div class="card-custom h-100">
+    <div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-signpost-split me-2 text-primary"></i>Development roadmap</h6></div>
+    <div class="card-custom-body">
+      {% for p in mvp.roadmap or [] %}
+      <div class="timeline-step">
+        <div class="d-flex justify-content-between"><strong>{{ p.phase }}</strong><span class="badge bg-primary-subtle text-primary border">Weeks {{ p.weeks }}</span></div>
+        <div class="fs-7">{{ p.goal }}</div>
+        {% if p.deliverables %}<ul class="fs-7 mb-1 ps-3">{% for d in p.deliverables %}<li>{{ d }}</li>{% endfor %}</ul>{% endif %}
+        <div class="fs-8 text-success"><i class="bi bi-flag-fill me-1"></i>Done when: {{ p.exit_criteria }}</div>
+      </div>
+      {% else %}<div class="text-muted">No roadmap returned.</div>{% endfor %}
+    </div></div></div>
+  <div class="col-lg-5">
+    <div class="card-custom mb-4"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-cpu me-2 text-primary"></i>Suggested tech stack</h6></div>
+      <div class="card-custom-body">
+        {% for t in mvp.recommended_tech_stack or [] %}<div class="insight-item"><span class="insight-title">{{ t.layer }}:</span> {{ t.technology }}<div class="fs-8 text-muted">{{ t.reason }}</div></div>{% else %}<span class="text-muted fs-7">None.</span>{% endfor %}
+        {% if mvp.data_needs %}<div class="fs-7 mt-2"><strong>Data needed:</strong> {{ mvp.data_needs | join('; ') }}</div>{% endif %}
+      </div></div>
+    <div class="card-custom"><div class="card-custom-header"><h6 class="mb-0"><i class="bi bi-clipboard-check me-2 text-primary"></i>Validation experiments</h6></div>
+      <div class="card-custom-body">
+        {% for e in mvp.validation_experiments or [] %}<div class="insight-item"><div class="insight-title">{{ e.experiment }}</div><div class="fs-8 text-muted">Success: {{ e.success_metric }} · {{ e.duration }}</div></div>{% else %}<span class="text-muted fs-7">None.</span>{% endfor %}
+      </div></div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
