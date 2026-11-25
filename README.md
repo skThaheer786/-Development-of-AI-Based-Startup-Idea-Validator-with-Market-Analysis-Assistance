@@ -1109,7 +1109,4 @@ AI-Startup-Idea-Validator/
 ---
 
 # 15. License
-
-This project is developed for academic and educational purposes.
-
-A separate `LICENSE` file should be included in the repository to define the terms of distribution and reuse.
+This project is licensed under the MIT License. See the "LICENSE" (LICENSE) file for details
